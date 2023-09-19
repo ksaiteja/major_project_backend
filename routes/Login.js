@@ -3,25 +3,32 @@ const router=express.Router()
 const bcrypt=require('bcrypt')
 const User=require('../models/userModel')
 
-router.get('/',async (req,res)=>{
+router.post('/validate',async (req,res)=>{
     try{
-        const {username,password,role}=req.body
+        const {username,password}=req.body
+        if(!username){
+            return res.status(400).json({success:false,msg:"Username is required"})
+        }
+        if(!password){
+            return res.status(400).json({success:false,msg:"Password is required"})
+        }
         const user=await User.findOne({username})
         if(!user){
-            return res.status(400).json({msg:"user not found"})
+            return res.status(400).json({success:false,msg:"User not found"})
         }
-        const passwordMatch=bcrypt.compare(password,user.password)
-        if(!passwordMatch){
-            return res.status(400).json({msg:"username and password does not match"})
-        }
-        if(user.role=="admin"){
-            return res.status(200).json({msg:"return the admin page"})
-        }
-        else{
-            return res.status(200).json({msg:"return the student page"})
-        }
+        bcrypt.compare(password, user.password)
+            .then((passwordMatch) => {
+                if (!passwordMatch) {
+                return res.status(400).json({ success: false, msg: "Username and Password do not match" });
+                }
+                
+                return res.status(200).json({ success: true, role: user.role });
+            })
+            .catch((error) => {
+                return res.status(500).json({ success: false, error: error.message });
+            });
     }catch(error){
-        return res.status(500).json({error:error.message})
+        return res.status(500).json({success:false,error:error.message})
     } 
 })
 router.post('/',async (req,res)=>{
