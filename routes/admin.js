@@ -7,7 +7,7 @@ route.post("/validate", (req, res) => {
   const pythonProcess = spawn("python", [
     "../data/scripts/faces_recognition.py",
     req.body.image,
-    "../data/models/cse4d_model.pkl",
+    "../data/models/" + req.body.model,
     "./output_image.jpg",
   ]);
   let outputData = [];
@@ -24,12 +24,12 @@ route.post("/validate", (req, res) => {
     console.log(`Python process exited with code ${code}`);
     if (code === 0) {
       const imagePath = "./output_image.jpg"; // Specify the path to the image file
-        const namesPath='./output_names.txt'
+      const namesPath = "./output_names.txt";
       // Check if the image file exists
       if (fs.existsSync(imagePath)) {
         // Read the image file and send it as a response
         const image = fs.readFileSync(imagePath);
-        const names=fs.readFileSync(namesPath)
+        const names = fs.readFileSync(namesPath);
         const responseData = {
           image: Buffer.from(image).toString("base64"), // Ensure 'image' is a base64
           names: Buffer.from(names).toString("base64"), // Assuming 'outputData' is an array or an object
